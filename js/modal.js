@@ -687,7 +687,11 @@ const openWishlistModal = (existingData = null) => {
                 loadingSpinner.style.display = 'block';
                 fetchBtn.disabled = true;
                 
-                fetch('http://localhost:8001/api/wishlist/import', {
+                const apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') 
+                    ? 'http://localhost:8001/api/wishlist/import' 
+                    : '/api/wishlist/import';
+
+                fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: url })
