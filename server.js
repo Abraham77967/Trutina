@@ -88,10 +88,14 @@ app.post('/api/wishlist/import', async (req, res) => {
                 }
             } catch (e) {}
 
-            const scraperUrl = `https://api.scraperapi.com?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(url)}`;
+            // Use premium=true for sites with strict bot protection like Best Buy
+            // Use render=true to execute JS because stores often hide prices behind React/Angular
+            const scraperUrl = `https://api.scraperapi.com?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&premium=true&render=true`;
             const response = await fetch(scraperUrl);
 
             if (!response.ok) {
+                const text = await response.text();
+                console.error("ScraperAPI Error:", response.status, text);
                 return res.status(500).json({ error: 'Failed to fetch the webpage.' });
             }
 
@@ -109,15 +113,63 @@ app.post('/api/wishlist/import', async (req, res) => {
                       $('meta[name="twitter:image"]').attr('content') || 
                       $('img').first().attr('src') || '';
 
-            let priceStr = $('meta[property="product:price:amount"]').attr('content') || 
-                           $('meta[property="og:price:amount"]').attr('content') || '0';
-            
+            let priceStr = '0';
+
+            // 1. Try JSON-LD structured data first (Best Buy, Ikea, Nike use this heavily)
+            $('script[type="application/ld+json"]').each((i, el) => {
+                try {
+                    const jsonData = JSON.parse($(el).html());
+                    const items = Array.isArray(jsonData) ? jsonData : [jsonData];
+                    for (let item of items) {
+                        const products = item['@graph'] ? item['@graph'].filter(x => x['@type'] === 'Product') : [item];
+                        for (let prod of products) {
+                            if (prod['@type'] === 'Product' && prod.offers) {
+                                const offer = Array.isArray(prod.offers) ? prod.offers[0] : prod.offers;
+                                if (offer.price) {
+                                    priceStr = offer.price.toString();
+                                    return false; // break loop
+                                }
+                            }
+                        }
+                    }
+                } catch(e) {}
+            });
+
+            // 2. Try Open Graph meta tags
             if (priceStr === '0') {
-                // regex search for $XX.XX in the HTML body text as fallback
-                const bodyText = $('body').text();
-                const priceMatch = bodyText.match(/\$\s*(\d+(?:\.\d{2})?)/);
-                if (priceMatch) {
-                    priceStr = priceMatch[1];
+                priceStr = $('meta[property="product:price:amount"]').attr('content') || 
+                           $('meta[property="og:price:amount"]').attr('content') || '0';
+            }
+
+            // 2.5 Hardcoded selectors for Best Buy, Ikea, Nike
+            if (priceStr === '0') {
+                const specificPriceElement = $([
+                    '[itemprop="price"]',                  // Universal Microdata
+                    '.priceView-hero-price span',          // Best Buy
+                    '.priceView-customer-price span',      // Best Buy
+                    '.sr-only:contains("Price:") + span',  // Best Buy mobile/alt
+                    '.pip-temp-price__integer',            // Ikea
+                    '.pip-price-module__primary-currency-price', // Ikea
+                    '[data-test="product-price"]',         // Nike
+                    '.product-price',                      // Nike
+                    '.price-display',                      // Generic
+                    '.current-price'                       // Generic
+                ].join(', ')).first();
+
+                let foundPrice = specificPriceElement.attr('content') || specificPriceElement.text();
+                
+                const specificMatch = foundPrice.match(/\$?\s*(\d+(?:\.\d{2})?)/);
+                if (specificMatch) {
+                    priceStr = specificMatch[1];
+                }
+            }
+            
+            // 3. Fallback regex search on specific price containers only (not the whole body)
+            if (priceStr === '0') {
+                const priceContainers = $('[class*="product-price" i], [id*="product-price" i], [class*="price-current" i]').text();
+                const containerMatch = priceContainers.match(/\$\s*(\d+(?:\.\d{2})?)/);
+                if (containerMatch) {
+                    priceStr = containerMatch[1];
                 }
             }
 

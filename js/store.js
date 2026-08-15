@@ -32,10 +32,9 @@ const initialData = {
         { category: 'Other', limit: 40, icon: 'box' }
     ],
     wishlist: [
-        { id: 1, name: 'LED Floor Lamp with Remote Control', store: 'Amazon', price: 31.99, url: '#', status: 'WANT', inPlan: false, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Lamp' },
-        { id: 2, name: 'THE NORTH FACE Surge Commuter Laptop Backpack', store: 'Amazon', price: 120.17, url: '#', status: 'WANT', inPlan: true, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Backpack' },
-        { id: 3, name: 'ShedRain Vortex Windproof Compact Travel Umbrella', store: 'Amazon', price: 50.00, url: '#', status: 'WANT', inPlan: true, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Umbrella' },
-        { id: 4, name: 'Anker Nano Charging Station', store: 'Amazon', price: 69.99, url: '#', status: 'WANT', inPlan: false, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Charger' }
+        { id: 1, name: "Nike Pegasus Premium Men's Road Running Shoes", store: 'Nike', price: 220.00, url: 'https://www.nike.com/t/pegasus-premium-mens-road-running-shoes-kWXqW9yR/IV5663-012', status: 'WANT', inPlan: false, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Nike+Shoes' },
+        { id: 2, name: 'Stanley Quencher H2.0 FlowState Tumbler', store: 'Amazon', price: 45.00, url: 'https://a.co/d/04zmpulp', status: 'WANT', inPlan: true, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Stanley+Mug' },
+        { id: 3, name: 'Travel Laptop Backpack', store: 'Amazon', price: 39.99, url: 'https://a.co/d/04DKso1S', status: 'WANT', inPlan: true, img: 'https://dummyimage.com/300x300/e2dfd6/111111&text=Backpack' }
     ],
     history: [
         { month: 'JULY', income: 1284.00, spent: 1100.00, net: 184.00 },
