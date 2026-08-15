@@ -668,7 +668,7 @@ const openWishlistModal = (existingData = null) => {
                     name: fetchedData.title,
                     price: parseFloat(fetchedData.price),
                     store: fetchedData.source || 'Amazon',
-                    url: fetchedData.asin ? 'https://amazon.com/dp/' + fetchedData.asin : '',
+                    url: fetchedData.asin ? 'https://amazon.com/dp/' + fetchedData.asin : (fetchedData.originalUrl || ''),
                     img: fetchedData.img,
                     status: 'WANT'
                 });
@@ -699,8 +699,22 @@ const openWishlistModal = (existingData = null) => {
                     if (data.error) {
                         statusText.textContent = data.error;
                         statusText.style.color = 'var(--color-red)';
+                    } else if (parseFloat(data.price) <= 1.50) {
+                        // Price failed or hit $1 trap -> Route to Manual Entry seamlessly
+                        document.getElementById('manualName').value = data.title || '';
+                        document.getElementById('manualStore').value = data.source || '';
+                        document.getElementById('manualUrl').value = url;
+                        document.getElementById('manualImg').value = data.img || '';
+                        document.getElementById('manualPrice').value = '';
+                        
+                        // Switch to manual tab
+                        document.getElementById('tabManual').click();
+                        document.getElementById('manualPrice').focus();
                     } else {
                         fetchedData = data;
+                        // Add original url back into fetchedData just in case
+                        fetchedData.originalUrl = url;
+                        
                         document.getElementById('importContainer').style.display = 'none';
                         
                         document.getElementById('previewContainer').style.display = 'flex';

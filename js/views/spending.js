@@ -236,7 +236,9 @@ const renderSpending = () => {
                     
                     btnContainer.appendChild(clearBtn);
                     btnContainer.appendChild(todayBtn);
-                    instance.calendarContainer.appendChild(btnContainer);
+                    if (instance.calendarContainer) {
+                        instance.calendarContainer.appendChild(btnContainer);
+                    }
                 }
             });
         } else {
